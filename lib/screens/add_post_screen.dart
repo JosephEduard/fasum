@@ -24,6 +24,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   bool _isUploading = false;
   double? _latitude;
   double? _longitude;
+  bool _isGenerating = false;
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(
@@ -123,6 +124,27 @@ class _AddPostScreenState extends State<AddPostScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to upload the post.')));
     }
+  }
+
+  Future<void> _generateDescriptionWithAI() async{
+    if(_image == null) return;
+    setState(() => _isGenerating = true); 
+    try {
+      final model = GenerativeModel(
+        model: 'gemini-2.0',
+        apiKey: 'AIzaSyCyeuPkIK8NErHRJnjQ58HSZA3RttmC-cg',
+      );
+
+      final imageBytes = await _image!.readAsBytes();
+      final content = Content.multi([
+        DataPart('image/jpeg', imageBytes),
+        TextPart(
+          'Berdasarkan foto ini, identifikasi satu kategori '
+        )
+      ])
+
+    }
+
   }
 
   void _showImageSourceDialog() {

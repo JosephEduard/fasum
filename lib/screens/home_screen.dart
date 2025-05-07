@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fasum/screens/add_post_screen.dart';
+import 'package:fasum/screens/detail_screen.dart';
 import 'package:fasum/screens/sign_in_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,35 +14,28 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  final Color _primaryColor = const Color(0xFF6200EE);
-  final Color _accentColor = const Color(0xFF03DAC6);
-  final Color _backgroundColor = const Color(0xFFF5F5F5);
+class _HomeScreenState extends State<HomeScreen> {
+  String? selectedCategory;
 
-  late final AnimationController _fadeController;
-  late final Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeIn,
-    );
-
-    _fadeController.forward();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
+  List<String> categories = [
+    'Jalan Rusak',
+    'Marka Pudar',
+    'Lampu Mati',
+    'Trotoar Rusak',
+    'Rambu Rusak',
+    'Jembatan Rusak',
+    'Sampah Menumpuk',
+    'Saluran Tersumbat',
+    'Sungai Tercemar',
+    'Sampah Sungai',
+    'Pohon Tumbang',
+    'Taman Rusak',
+    'Fasilitas Rusak',
+    'Pipa Bocor',
+    'Vandalisme',
+    'Banjir',
+    'Lainnya',
+  ];
 
   String formatTime(DateTime dateTime) {
     final now = DateTime.now();
@@ -59,279 +53,246 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> signOut(BuildContext context) async {
+  Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
-      PageRouteBuilder(
-        pageBuilder:
-            (context, animation, secondaryAnimation) => const SignInScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          var begin = const Offset(1.0, 0.0);
-          var end = Offset.zero;
-          var curve = Curves.easeInOut;
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 500),
-      ),
-      (route) => false,
+      MaterialPageRoute(builder: (context) => SignInScreen()),
+      (route) => false, // Hapus semua route sebelumnya
     );
+  }
+
+  void _showCategoryFilter() async {
+    final result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.75,
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 24),
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.clear),
+                  title: const Text('Semua Kategori'),
+                  onTap:
+                      () => Navigator.pop(
+                        context,
+                        null,
+                      ), // Null untuk memilih semua kategori
+                ),
+                const Divider(),
+                ...categories.map(
+                  (category) => ListTile(
+                    title: Text(category),
+                    trailing:
+                        selectedCategory == category
+                            ? Icon(
+                              Icons.check,
+                              color: Theme.of(context).colorScheme.primary,
+                            )
+                            : null,
+                    onTap:
+                        () => Navigator.pop(
+                          context,
+                          category,
+                        ), // Kategori yang dipilih
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedCategory =
+            result; // Set kategori yang dipilih atau null untuk Semua Kategori
+      });
+    } else {
+      // Jika result adalah null, berarti memilih Semua Kategori
+      setState(() {
+        selectedCategory =
+            null; // Reset ke null untuk menampilkan semua kategori
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        primaryColor: _primaryColor,
-        colorScheme: ColorScheme.light(
-          primary: _primaryColor,
-          secondary: _accentColor,
-          inversePrimary: _primaryColor.withOpacity(0.8),
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: _primaryColor,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.white),
-          titleTextStyle: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(
+          'Fasum',
+          style: TextStyle(
+            color: Colors.green[600],
             fontWeight: FontWeight.bold,
           ),
         ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: _accentColor,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        actions: [
+          IconButton(
+            onPressed: _showCategoryFilter,
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filter Kategori',
           ),
-        ),
-        cardTheme: CardTheme(
-          elevation: 4,
-          shadowColor: Colors.black.withOpacity(0.2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: _backgroundColor,
-        appBar: AppBar(
-          title: const Text("Home"),
-          actions: [
-            IconButton(
-              onPressed: () {
-                signOut(context);
-              },
-              icon: const Icon(Icons.logout),
-              tooltip: 'Sign Out',
-            ),
-          ],
-        ),
-        body: FadeTransition(
-          opacity: _fadeAnimation,
-          child: StreamBuilder(
-            stream:
-                FirebaseFirestore.instance
-                    .collection('posts')
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData)
-                return Center(
-                  child: CircularProgressIndicator(color: _accentColor),
-                );
-              final posts = snapshot.data!.docs;
-              return posts.isEmpty
-                  ? _buildEmptyState()
-                  : _buildPostsList(posts);
+          IconButton(
+            onPressed: () {
+              signOut();
             },
-          ),
-        ),
-        floatingActionButton: TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.elasticOut,
-          builder: (context, value, child) {
-            return Transform.scale(
-              scale: value,
-              child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder:
-                          (context, animation, secondaryAnimation) =>
-                              AddPostScreen(),
-                      transitionsBuilder: (
-                        context,
-                        animation,
-                        secondaryAnimation,
-                        child,
-                      ) {
-                        var begin = const Offset(0.0, 1.0);
-                        var end = Offset.zero;
-                        var curve = Curves.easeInOut;
-                        var tween = Tween(
-                          begin: begin,
-                          end: end,
-                        ).chain(CurveTween(curve: curve));
-                        return SlideTransition(
-                          position: animation.drive(tween),
-                          child: child,
-                        );
-                      },
-                      transitionDuration: const Duration(milliseconds: 500),
-                    ),
-                  );
-                },
-                child: const Icon(Icons.add),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.post_add, size: 80, color: _primaryColor.withOpacity(0.5)),
-          const SizedBox(height: 16),
-          Text(
-            'No posts yet',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Create your first post by tapping the + button',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            textAlign: TextAlign.center,
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
-    );
-  }
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {});
+        },
+        child: StreamBuilder(
+          stream:
+              FirebaseFirestore.instance
+                  .collection('posts')
+                  .orderBy('createdAt', descending: true)
+                  .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final posts =
+                snapshot.data!.docs.where((doc) {
+                  final data = doc.data();
+                  final category = data['category'] ?? 'Lainnya';
+                  return selectedCategory == null ||
+                      selectedCategory == category;
+                }).toList();
 
-  Widget _buildPostsList(List<QueryDocumentSnapshot> posts) {
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(8),
-      itemCount: posts.length,
-      itemBuilder: (context, index) {
-        return TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: 0, end: 1),
-          duration: Duration(milliseconds: 600 + (index * 100)),
-          curve: Curves.easeOutQuart,
-          builder: (context, value, child) {
-            return Opacity(
-              opacity: value,
-              child: Transform.translate(
-                offset: Offset(0, 20 * (1 - value)),
-                child: child,
-              ),
-            );
-          },
-          child: _buildPostCard(posts[index].data() as Map<String, dynamic>),
-        );
-      },
-    );
-  }
+            if (posts.isEmpty) {
+              return const Center(
+                child: Text("Tidak ada laporan untuk kategori ini."),
+              );
+            }
 
-  Widget _buildPostCard(Map<String, dynamic> data) {
-    final imageBase64 = data['image'];
-    final description = data['description'] ?? '';
-    final createdAtStr = data['createdAt'];
-    final fullName = data['fullName'] ?? 'Anonim';
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: posts.length,
+              itemBuilder: (context, index) {
+                final data = posts[index].data();
+                final imageBase64 = data['image'];
+                final description = data['description'];
+                final createdAtStr = data['createdAt'];
+                final fullName = data['fullName'] ?? 'Anonim';
+                final latitude = data['latitude'];
+                final longitude = data['longitude'];
+                final category = data['category'] ?? 'Lainnya';
+                final createdAt = DateTime.parse(createdAtStr);
+                String heroTag =
+                    'fasum-image-${createdAt.millisecondsSinceEpoch}';
 
-    // Parse DateTime
-    final createdAt = DateTime.parse(createdAtStr);
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      clipBehavior: Clip.antiAlias, // Ensures image is properly clipped
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (imageBase64 != null)
-            Hero(
-              tag: 'post-image-${createdAtStr}',
-              child: Container(
-                width: double.infinity,
-                height: 200,
-                decoration: BoxDecoration(color: Colors.grey[300]),
-                child: Image.memory(
-                  base64Decode(imageBase64),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: _primaryColor,
-                      radius: 16,
-                      child: Text(
-                        fullName.isNotEmpty ? fullName[0].toUpperCase() : 'A',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => DetailScreen(
+                              imageBase64: imageBase64,
+                              description: description ?? '',
+                              createdAt: createdAt,
+                              fullName: fullName,
+                              latitude: latitude,
+                              longitude: longitude,
+                              category: category,
+                              heroTag: heroTag,
+                            ),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    elevation: 1,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    shadowColor: Theme.of(context).colorScheme.shadow,
+                    margin: const EdgeInsets.all(10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (imageBase64 != null)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(10),
+                            ),
+                            child: Hero(
+                              tag: heroTag,
+                              child: Image.memory(
+                                base64Decode(imageBase64),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 200,
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    fullName,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    formatTime(createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    description ?? '',
+                                    style: const TextStyle(fontSize: 16),
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            fullName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            formatTime(createdAt),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (description.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12.0),
-                    child: Text(
-                      description,
-                      style: const TextStyle(fontSize: 16),
+                      ],
                     ),
                   ),
-              ],
-            ),
-          ),
-        ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const AddPostScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
