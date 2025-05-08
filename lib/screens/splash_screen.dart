@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Center(
         child: FadeTransition(
           opacity: _animation,
-          child: Image.asset('assets\fasum_icon.png', width: 150, height: 150),
+          child: Image.asset('assets/fasum_icon.png', width: 120, height: 120),
         ),
       ),
     );
