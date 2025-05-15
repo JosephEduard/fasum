@@ -23,7 +23,7 @@ class SignInScreenState extends State<SignInScreen>
   late Animation<Offset> _slideAnimation;
 
   // Custom theme colors
-  final Color _primaryColor = const Color(0xFF6200EE);
+  final Color _primaryColor = const Color(0xFF7FCA83);
   final Color _accentColor = const Color(0xFF03DAC6);
   final Color _backgroundColor = const Color(0xFFF5F5F5);
   final Color _errorColor = const Color(0xFFB00020);
