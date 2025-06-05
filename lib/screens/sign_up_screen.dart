@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fasum/screens/home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math' as math;
+import 'package:fasum/l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -104,7 +105,10 @@ class SignUpScreenState extends State<SignUpScreen>
         backgroundColor: _backgroundColor,
         appBar: AppBar(
           backgroundColor: _primaryColor,
-          title: const Text('Sign Up', style: TextStyle(color: Colors.white)),
+          title: Text(
+            AppLocalizations.of(context).signUp,
+            style: TextStyle(color: Colors.white),
+          ),
           elevation: 0,
         ),
         body: Center(
@@ -140,11 +144,13 @@ class SignUpScreenState extends State<SignUpScreen>
                         const SizedBox(height: 24.0),
                         _buildAnimatedFormField(
                           controller: _fullNameController,
-                          labelText: 'Full Name',
+                          labelText: AppLocalizations.of(context).fullName,
                           prefixIcon: Icons.person,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter your full name';
+                              return AppLocalizations.of(
+                                context,
+                              ).pleaseEnterFullName;
                             }
                             return null;
                           },
@@ -154,14 +160,16 @@ class SignUpScreenState extends State<SignUpScreen>
                         const SizedBox(height: 16.0),
                         _buildAnimatedFormField(
                           controller: _emailController,
-                          labelText: 'Email',
+                          labelText: AppLocalizations.of(context).email,
                           prefixIcon: Icons.email,
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value == null ||
                                 value.isEmpty ||
                                 !_isValidEmail(value)) {
-                              return 'Please enter a valid email';
+                              return AppLocalizations.of(
+                                context,
+                              ).pleaseEnterValidEmail;
                             }
                             return null;
                           },
@@ -170,7 +178,7 @@ class SignUpScreenState extends State<SignUpScreen>
                         const SizedBox(height: 16.0),
                         _buildAnimatedPasswordField(
                           controller: _passwordController,
-                          labelText: 'Password',
+                          labelText: AppLocalizations.of(context).password,
                           isVisible: _isPasswordVisible,
                           onVisibilityToggle: () {
                             setState(() {
@@ -179,10 +187,14 @@ class SignUpScreenState extends State<SignUpScreen>
                           },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter a password';
+                              return AppLocalizations.of(
+                                context,
+                              ).pleaseEnterPassword;
                             }
                             if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
+                              return AppLocalizations.of(
+                                context,
+                              ).passwordTooShort;
                             }
                             return null;
                           },
@@ -191,7 +203,8 @@ class SignUpScreenState extends State<SignUpScreen>
                         const SizedBox(height: 16.0),
                         _buildAnimatedPasswordField(
                           controller: _confirmPasswordController,
-                          labelText: 'Confirm Password',
+                          labelText:
+                              AppLocalizations.of(context).confirmPassword,
                           isVisible: _isConfirmPasswordVisible,
                           prefixIcon: Icons.lock_outline,
                           onVisibilityToggle: () {
@@ -202,10 +215,14 @@ class SignUpScreenState extends State<SignUpScreen>
                           },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please confirm your password';
+                              return AppLocalizations.of(
+                                context,
+                              ).pleaseConfirmPassword;
                             }
                             if (value != _passwordController.text) {
-                              return 'Passwords do not match';
+                              return AppLocalizations.of(
+                                context,
+                              ).passwordsDoNotMatch;
                             }
                             return null;
                           },
@@ -225,8 +242,8 @@ class SignUpScreenState extends State<SignUpScreen>
                                       )
                                       : ElevatedButton(
                                         onPressed: _signUp,
-                                        child: const Text(
-                                          'Sign Up',
+                                        child: Text(
+                                          AppLocalizations.of(context).signUp,
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
@@ -377,7 +394,9 @@ class SignUpScreenState extends State<SignUpScreen>
     } on FirebaseAuthException catch (error) {
       _showErrorMessage(_getAuthErrorMessage(error.code));
     } catch (error) {
-      _showErrorMessage('An error occurred: $error');
+      _showErrorMessage(
+        AppLocalizations.of(context).errorOccurred(error.toString()),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -405,13 +424,13 @@ class SignUpScreenState extends State<SignUpScreen>
   String _getAuthErrorMessage(String code) {
     switch (code) {
       case 'weak-password':
-        return 'The password provided is too weak.';
+        return AppLocalizations.of(context).weakPassword;
       case 'email-already-in-use':
-        return 'The account already exists for that email.';
+        return AppLocalizations.of(context).emailAlreadyInUse;
       case 'invalid-email':
-        return 'The email address is not valid.';
+        return AppLocalizations.of(context).invalidEmail;
       default:
-        return 'An error occurred. Please try again.';
+        return AppLocalizations.of(context).genericError;
     }
   }
 }

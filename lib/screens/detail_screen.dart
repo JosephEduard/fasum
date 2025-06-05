@@ -4,6 +4,7 @@ import 'package:fasum/screens/full_image_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fasum/l10n/app_localizations.dart';
 
 class DetailScreen extends StatefulWidget {
   const DetailScreen({
@@ -40,7 +41,7 @@ class _DetailScreenState extends State<DetailScreen> {
     if (!mounted) return;
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak bisa membuka Google Maps')),
+        SnackBar(content: Text(AppLocalizations.of(context).unableToOpenMaps)),
       );
     }
   }
@@ -52,7 +53,7 @@ class _DetailScreenState extends State<DetailScreen> {
     ).format(widget.createdAt);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Laporan')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).reportDetail)),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +85,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         ),
                       );
                     },
-                    tooltip: 'Lihat gambar penuh',
+                    tooltip: AppLocalizations.of(context).viewFullImage,
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.black45,
                     ),
@@ -148,7 +149,7 @@ class _DetailScreenState extends State<DetailScreen> {
                           size: 38,
                           color: Colors.lightGreen,
                         ),
-                        tooltip: "Buka di Google Maps",
+                        tooltip: AppLocalizations.of(context).openInGoogleMaps,
                       ),
                     ],
                   ),

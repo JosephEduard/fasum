@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fasum/screens/home_screen.dart';
 import 'package:fasum/screens/sign_up_screen.dart';
 import 'dart:math' as math;
+import 'package:fasum/l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -100,7 +101,10 @@ class SignInScreenState extends State<SignInScreen>
         backgroundColor: _backgroundColor,
         appBar: AppBar(
           backgroundColor: _primaryColor,
-          title: const Text('Sign In', style: TextStyle(color: Colors.white)),
+          title: Text(
+            AppLocalizations.of(context).signIn,
+            style: TextStyle(color: Colors.white),
+          ),
           elevation: 0,
         ),
         body: Center(
@@ -138,7 +142,7 @@ class SignInScreenState extends State<SignInScreen>
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            labelText: 'Email',
+                            labelText: AppLocalizations.of(context).email,
                             prefixIcon: Icon(Icons.email, color: _primaryColor),
                             labelStyle: TextStyle(color: Colors.grey[700]),
                           ),
@@ -146,7 +150,9 @@ class SignInScreenState extends State<SignInScreen>
                             if (value == null ||
                                 value.isEmpty ||
                                 !_isValidEmail(value)) {
-                              return 'Please enter a valid email';
+                              return AppLocalizations.of(
+                                context,
+                              ).pleaseEnterValidEmail;
                             }
                             return null;
                           },
@@ -156,7 +162,7 @@ class SignInScreenState extends State<SignInScreen>
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: AppLocalizations.of(context).password,
                             prefixIcon: Icon(Icons.lock, color: _primaryColor),
                             labelStyle: TextStyle(color: Colors.grey[700]),
                             suffixIcon: AnimatedSwitcher(
@@ -188,7 +194,9 @@ class SignInScreenState extends State<SignInScreen>
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
+                              return AppLocalizations.of(
+                                context,
+                              ).pleaseEnterPassword;
                             }
                             return null;
                           },
@@ -204,8 +212,8 @@ class SignInScreenState extends State<SignInScreen>
                                   scale: value,
                                   child: ElevatedButton(
                                     onPressed: _signIn,
-                                    child: const Text(
-                                      'Sign In',
+                                    child: Text(
+                                      AppLocalizations.of(context).signIn,
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -226,9 +234,14 @@ class SignInScreenState extends State<SignInScreen>
                                 color: Colors.grey[800],
                               ),
                               children: [
-                                const TextSpan(text: "Don't have an account? "),
                                 TextSpan(
-                                  text: "Sign Up",
+                                  text:
+                                      AppLocalizations.of(
+                                        context,
+                                      ).dontHaveAccount,
+                                ),
+                                TextSpan(
+                                  text: AppLocalizations.of(context).signUp,
                                   style: TextStyle(
                                     color: _accentColor,
                                     fontWeight: FontWeight.bold,
@@ -329,7 +342,9 @@ class SignInScreenState extends State<SignInScreen>
     } on FirebaseAuthException catch (error) {
       _showSnackBar(_getAuthErrorMessage(error.code));
     } catch (error) {
-      _showSnackBar('An error occurred: $error');
+      _showSnackBar(
+        AppLocalizations.of(context).errorOccurred(error.toString()),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -357,11 +372,13 @@ class SignInScreenState extends State<SignInScreen>
   String _getAuthErrorMessage(String code) {
     switch (code) {
       case 'user-not-found':
-        return 'No user found with that email';
+        return AppLocalizations.of(
+          context,
+        ).noUserFound; // Localized message for user not found
       case 'wrong-password':
-        return 'Wrong password. Please try again.';
+        return AppLocalizations.of(context).wrongPassword;
       default:
-        return 'An error occurred. Please try again.';
+        return AppLocalizations.of(context).genericError;
     }
   }
 }
